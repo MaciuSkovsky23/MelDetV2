@@ -1,41 +1,28 @@
 package pl.test.myapplication
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.media.Image
+import android.icu.text.DecimalFormat
 import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.renderscript.Element
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.registerForActivityResult
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.graphics.scale
 //import pl.test.myapplication.ml.SecondTestModel
 import pl.test.myapplication.ml.NewTestV1
-import pl.test.myapplication.ui.theme.MyApplicationTheme
 import java.io.IOException
-import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.jar.Manifest
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import org.tensorflow.lite.DataType
+import kotlin.math.exp
 
 private const val MODEL_NAME = "NewTestV1"
 
@@ -44,9 +31,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gallery: Button
     private lateinit var imageView: ImageView
     private lateinit var result: TextView
+    private lateinit var probabilityText: TextView
+    private lateinit var info: Button
+
+    private lateinit var classified: TextView
 
     private val imageSize = 224
     private val classes = arrayOf("Malignant", "Benign")
+    private val decimalFormat = DecimalFormat("#.##")
 
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -84,10 +76,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        camera = findViewById(R.id.button)
-        gallery = findViewById(R.id.button2)
+        camera = findViewById(R.id.btnCamera)
+        gallery = findViewById(R.id.btnGallery)
         result = findViewById(R.id.result)
         imageView = findViewById(R.id.imageView)
+        probabilityText = findViewById(R.id.probabilityText)
+        info = findViewById(R.id.btnInfo)
+        classified = findViewById(R.id.classified)
     }
 
     private fun processImage(image: Bitmap) {
@@ -132,11 +127,14 @@ class MainActivity : AppCompatActivity() {
                 Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             galleryLauncher.launch(galleryIntent)
         }
+        info.setOnClickListener {
+            showInfoDialog()
+        }
     }
 
     private fun classifyImage(image: Bitmap) {
         try {
-//            val model = SecondTestModel.newInstance(applicationContext)
+//            val model = SecondTestModel.newInstance(applicationContext
             val model = NewTestV1.newInstance(applicationContext)
 
 // Creates inputs for reference.
@@ -166,16 +164,94 @@ class MainActivity : AppCompatActivity() {
             val outputs = model.process(inputFeature0)
             val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
+//            val confidences = outputFeature0.floatArray
+//            val maxPos = confidences.indices.maxByOrNull { confidences[it] } ?: 0
+//
+//            result.text = classes[maxPos]
             val confidences = outputFeature0.floatArray
-            val maxPos = confidences.indices.maxByOrNull { confidences[it] } ?: 0
+            val probabilities = softmax(confidences)
 
-            result.text = classes[maxPos]
+            val maxPos = probabilities.indices.maxByOrNull { probabilities[it] } ?: 0
+
+            displayResults(maxPos, probabilities)
+
 // Releases model resources if no longer used.
             model.close()
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
+
+    private fun softmax(logits: FloatArray): FloatArray{
+        val expValues = FloatArray(logits.size)
+        var sum = 0f
+
+        for(i in logits.indices){
+            expValues[i] = exp(logits[i].toDouble()).toFloat()
+            sum += expValues[i]
+        }
+
+        for(i in expValues.indices){
+            expValues[i] = expValues[i]/sum
+        }
+
+        return expValues
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun displayResults(predictedClass: Int, probabilities: FloatArray){
+
+        classified.setTextColor(resources.getColor(android.R.color.black))
+        result.text = "Prediction: ${classes[predictedClass]}"
+
+        val probabilityString = buildString{
+            append("Probabilities:\n")
+            for(i in classes.indices){
+                val percentage = probabilities[i]*100
+                append("${classes[i]}: ${decimalFormat.format(percentage)}%\n")
+            }
+        }
+
+        probabilityText.text = probabilityString
+
+        when (predictedClass){
+            0->{
+                result.setTextColor(resources.getColor(android.R.color.holo_red_dark, theme))
+            }
+            1->{
+                result.setTextColor(resources.getColor(android.R.color.holo_green_dark, theme))
+            }
+        }
+    }
+}
+
+private fun MainActivity.showInfoDialog() {
+    val infoMessage = """
+            This app uses AI to analyze skin lesions for potential melanoma.
+            
+            📋 How to use:
+            1. Take a clear photo of the skin lesion
+            2. Ensure good lighting
+            3. Keep the camera steady
+            4. Get the analysis results
+            
+            ⚠️ Important:
+            - This is not a medical diagnosis
+            - Always consult a dermatologist
+            - Regular skin checks are important
+            - Monitor changes in moles and lesions
+            
+            For accurate results:
+            - Use high-quality images
+            - Include the entire lesion
+            - Avoid shadows and glare
+        """.trimIndent()
+
+    android.app.AlertDialog.Builder(this)
+        .setTitle("Melanoma Detection Info")
+        .setMessage(infoMessage)
+        .setPositiveButton("OK", null)
+        .show()
 }
 
 

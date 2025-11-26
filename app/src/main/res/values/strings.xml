@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="take_picture">Take Picture</string>
+    <string name="launch_gallery">Launch Gallery</string>
+    <string name="classified_as">Classified as:</string>
+    <string name="take_or_select_a_photo_to_analyze">Take or select a photo to analyze</string>
+    <string name="photo">Photo</string>
+    <string name="melanoma_detector">Melanoma Detector</string>
+    <string name="info">Info</string>
 </resources>
