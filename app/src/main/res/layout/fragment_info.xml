@@ -8,7 +8,7 @@
     tools:context=".StartFragment">
 
     <TextView
-        android:id="@+id/startText"
+        android:id="@+id/infoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Ta aplikacja została stworzona w ramach pracy inżynierskiej\nSłuży jedynie do wstępnej diagnozy medycznej i nie zastąpi badań specjalistycznym sprzętem.\nW razie jakichkolwiek wątpliwości - zgłoś się do lekarza"

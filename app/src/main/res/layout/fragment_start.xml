@@ -11,7 +11,7 @@
         android:id="@+id/startText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="MELANOMA DETECTOR"
+        android:text="WYKRYWACZ CZERNIAKA"
         android:textAlignment="center"
         android:textSize="50sp"
         android:textStyle="bold|italic"
@@ -28,5 +28,6 @@
         app:layout_constraintEnd_toEndOf="@+id/startText"
         app:layout_constraintStart_toStartOf="@+id/startText"
         app:layout_constraintTop_toBottomOf="@id/startText" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

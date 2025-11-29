@@ -37,6 +37,7 @@ android {
     buildFeatures {
         compose = true
         mlModelBinding = true
+        viewBinding = true
     }
 
     aaptOptions{
@@ -46,6 +47,7 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.navigation.fragment.ktx)
     val nav_version = "2.9.6"
 
     // Views/Fragments integration

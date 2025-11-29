@@ -5,27 +5,29 @@
     android:id="@+id/main_nav"
     app:startDestination="@id/startFragment">
 
-    <activity
-        android:id="@+id/mainActivity"
-        android:name="pl.test.myapplication.MainActivity"
-        android:label="activity_main"
-        tools:layout="@layout/activity_main" />
     <fragment
         android:id="@+id/startFragment"
         android:name="pl.test.myapplication.StartFragment"
-        android:label="fragment_info"
+        android:label="StartFragment"
         tools:layout="@layout/fragment_start" >
         <action
             android:id="@+id/action_startFragment_to_infoFragment"
             app:destination="@id/infoFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/infoFragment"
         android:name="pl.test.myapplication.InfoFragment"
         android:label="InfoFragment"
         tools:layout="@layout/fragment_info" >
         <action
-            android:id="@+id/action_infoFragment_to_mainActivity"
-            app:destination="@id/mainActivity" />
+            android:id="@+id/action_infoFragment_to_analyzeFragment"
+            app:destination="@id/analyzeFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/analyzeFragment"
+        android:name="pl.test.myapplication.AnalyzeFragment"
+        android:label="AnalyzeFragment"
+        tools:layout="@layout/fragment_analyze"/>
 </navigation>
