@@ -15,20 +15,24 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.scale
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import pl.test.myapplication.data.ResultRepository
 import pl.test.myapplication.databinding.FragmentAnalyzeBinding
-import pl.test.myapplication.ml.NewTestV1
-import pl.test.myapplication.ml.NewTestV6
+import pl.test.myapplication.ml.BestByValAucGptest4
+//import pl.test.myapplication.ml.NewTestV1
+//import pl.test.myapplication.ml.NewTestV6
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.exp
 
-private const val MODEL_NAME = "NewTestV6"
 class AnalyzeFragment : Fragment() {
 
     private var _binding: FragmentAnalyzeBinding? = null
@@ -39,12 +43,22 @@ class AnalyzeFragment : Fragment() {
     private lateinit var imageView: ImageView
     private lateinit var result: TextView
     private lateinit var probabilityText: TextView
+    private lateinit var guideText: TextView
     private lateinit var info: Button
     private lateinit var classified: TextView
-
+    private lateinit var saveResult: Button
+    private lateinit var openHistory: Button
     private val imageSize = 224
-    private val classes = arrayOf("Czerniak", "Zmiana łagodna")
+    private val classes = arrayOf("Zmiana łagodna", "Czerniak")
     private val decimalFormat = DecimalFormat("#.##")
+
+    private var lastPMelanoma: Float? = null
+    private var lastPNevus: Float? = null
+    private var lastLabel: String? = null
+    private var lastIsUncertain: Boolean? = null
+    private var lastImage: Bitmap? = null
+
+    private val repo by lazy {ResultRepository(requireContext())}
 
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -92,13 +106,19 @@ class AnalyzeFragment : Fragment() {
         result = binding.result
         imageView = binding.imageView
         probabilityText = binding.probabilityText
+        guideText = binding.guideText
         info = binding.btnInfo
         classified = binding.classified
+        saveResult = binding.btnSaveResult
+        openHistory = binding.btnHistory
     }
 
     private fun processImage(image: Bitmap) {
         val dimension = minOf(image.width, image.height)
         val thumbnail = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
+
+        lastImage = thumbnail
+
         imageView.setImageBitmap(thumbnail)
 
         val scaledImage = thumbnail.scale(imageSize, imageSize)
@@ -108,6 +128,12 @@ class AnalyzeFragment : Fragment() {
     private fun processGalleryImage(uri: Uri) {
         try {
             val image = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, uri)
+
+            val dimension = minOf(image.width, image.height)
+            val thumbnail = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
+
+            lastImage = thumbnail
+
             imageView.setImageBitmap(image)
 
             val scaledImage = image.scale(imageSize, imageSize)
@@ -123,6 +149,7 @@ class AnalyzeFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+
         camera.setOnClickListener {
             if (requireContext().checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 openCamera()
@@ -138,11 +165,28 @@ class AnalyzeFragment : Fragment() {
         info.setOnClickListener {
             showInfoDialog()
         }
+        saveResult.setOnClickListener {
+            val img = lastImage ?: return@setOnClickListener
+            val percentage = lastPMelanoma ?: return@setOnClickListener
+
+            viewLifecycleOwner.lifecycleScope.launch{
+                repo.saveResult(img, percentage)
+                Toast.makeText(requireContext(), "Zapisano", Toast.LENGTH_SHORT).show()
+                saveResult.isEnabled = false
+            }
+        }
+        openHistory.setOnClickListener {
+            findNavController().navigate(R.id.action_analyzeFragment_to_historyFragment)
+        }
     }
 
     private fun classifyImage(image: Bitmap) {
+
+        guideText.visibility = View.INVISIBLE
+        print(guideText.visibility)
         try {
-            val model = NewTestV6.newInstance(requireContext())
+//            val model = NewTestV6.newInstance(requireContext())
+            val model = BestByValAucGptest4.newInstance(requireContext())
 
             val inputFeature0 =
                 TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
@@ -157,9 +201,13 @@ class AnalyzeFragment : Fragment() {
             for (i in 0 until imageSize) {
                 for (j in 0 until imageSize) {
                     val value = intValues[pixel++]
-                    byteBuffer.putFloat(((value shr 16) and 0xFF) * (1f / 255f))
-                    byteBuffer.putFloat(((value shr 8) and 0xFF) * (1f / 255f))
-                    byteBuffer.putFloat(((value) and 0xFF) * (1f / 255f))
+//                    byteBuffer.putFloat(((value shr 16) and 0xFF) * (1f / 255f))
+//                    byteBuffer.putFloat(((value shr 8) and 0xFF) * (1f / 255f))
+//                    byteBuffer.putFloat(((value) and 0xFF) * (1f / 255f))
+
+                    byteBuffer.putFloat((((value shr 16) and 0xFF) / 127.5f) - 1f)
+                    byteBuffer.putFloat((((value shr 8) and 0xFF) / 127.5f) - 1f)
+                    byteBuffer.putFloat((((value) and 0xFF) / 127.5f) - 1f)
                 }
             }
 
@@ -168,56 +216,79 @@ class AnalyzeFragment : Fragment() {
             val outputs = model.process(inputFeature0)
             val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
-            val confidences = outputFeature0.floatArray
-            val probabilities = softmax(confidences)
+//            val confidences = outputFeature0.floatArray
+//            val probabilities = softmax(confidences)
+//
+//            val maxPos = probabilities.indices.maxByOrNull { probabilities[it] } ?: 0
+//
+//            displayResults(maxPos, probabilities)
 
-            val maxPos = probabilities.indices.maxByOrNull { probabilities[it] } ?: 0
+            val output = outputFeature0.floatArray
+            val pMelanoma = output[0].coerceIn(0f, 1f)
 
-            displayResults(maxPos, probabilities)
+// dla UI dwie wartości P(nevus), P(melanoma)
+            val probabilities = floatArrayOf(
+                1f - pMelanoma,  // klasa 0: nevus
+                pMelanoma        // klasa 1: melanoma
+            )
+
+// standardowy próg 0.5 do klasy
+            val predictedClass = if (pMelanoma >= 0.5f) 1 else 0
+
+            displayResults(predictedClass, probabilities)
+
+            lastPMelanoma = pMelanoma
+            lastPNevus = 1f - pMelanoma
+            lastIsUncertain = pMelanoma in 0.4f..0.6f
+            lastLabel = when {
+                lastIsUncertain == true -> "NIEPEWNY"
+                pMelanoma >= 0.5f -> "CZERNIAK"
+                else -> "ZMIANA ŁAGODNA"
+            }
+
+            saveResult.isEnabled = true
 
             model.close()
+
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
 
-    private fun softmax(logits: FloatArray): FloatArray {
-        val expValues = FloatArray(logits.size)
-        var sum = 0f
-
-        for (i in logits.indices) {
-            expValues[i] = exp(logits[i].toDouble()).toFloat()
-            sum += expValues[i]
-        }
-
-        for (i in expValues.indices) {
-            expValues[i] = expValues[i] / sum
-        }
-
-        return expValues
-    }
-
     @SuppressLint("SetTextI18n")
     private fun displayResults(predictedClass: Int, probabilities: FloatArray) {
-        classified.setTextColor(resources.getColor(android.R.color.black, null))
-        result.text = "Predykcja: ${classes[predictedClass]}"
+        val pMelanoma = probabilities[1]
+        val melanomaPercentage = pMelanoma*100f
 
+//      wynik między 40%-60% jako niepewny
+        val notSure = pMelanoma in 0.4f..0.6f
+
+        result.text = if (notSure){
+            "Predykcja: NIEPEWNY"
+        }else{
+            "Predykcja: ${classes[predictedClass]}"
+        }
+
+//      wypisanie prawdopodobienstwa
         val probabilityString = buildString {
             append("Prawdopodobieństwo:\n")
-            for (i in classes.indices) {
+            for(i in classes.indices){
                 val percentage = probabilities[i] * 100
                 append("${classes[i]}: ${decimalFormat.format(percentage)}%\n")
             }
         }
-
         probabilityText.text = probabilityString
 
-        when (predictedClass) {
-            0 -> {
-                result.setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
+
+        when {
+            notSure -> {
+                result.setTextColor(resources.getColor(android.R.color.holo_orange_light, null))
             }
-            1 -> {
+            predictedClass == 0 -> {
                 result.setTextColor(resources.getColor(android.R.color.holo_green_dark, null))
+            }
+            predictedClass == 1 -> {
+                result.setTextColor(resources.getColor(android.R.color.holo_red_dark, null))
             }
         }
     }

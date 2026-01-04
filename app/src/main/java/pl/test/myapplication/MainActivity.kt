@@ -5,7 +5,6 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import pl.test.myapplication.databinding.ActivityMainBinding
 
-private const val MODEL_NAME = "NewTestV6"
 
 class MainActivity : AppCompatActivity() {
 

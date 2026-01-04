@@ -29,5 +29,15 @@
         android:id="@+id/analyzeFragment"
         android:name="pl.test.myapplication.AnalyzeFragment"
         android:label="AnalyzeFragment"
-        tools:layout="@layout/fragment_analyze"/>
+        tools:layout="@layout/fragment_analyze">
+        <action
+            android:id="@+id/action_analyzeFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="pl.test.myapplication.HistoryFragment"
+        android:label="HistoryFragment"
+        tools:layout="@layout/fragment_history" />
 </navigation>
