@@ -15,7 +15,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class HistoryAdapter : ListAdapter<ResultEntity, HistoryAdapter.VH>(DIFF){
+class HistoryAdapter (
+    private val onItemClick: (ResultEntity)-> Unit
+) : ListAdapter<ResultEntity, HistoryAdapter.VH>(DIFF){
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<ResultEntity>() {
             override fun areItemsTheSame(oldItem: ResultEntity, newItem: ResultEntity): Boolean =
@@ -27,6 +29,7 @@ class HistoryAdapter : ListAdapter<ResultEntity, HistoryAdapter.VH>(DIFF){
     }
 
     private val df = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = ItemHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -77,6 +80,10 @@ class HistoryAdapter : ListAdapter<ResultEntity, HistoryAdapter.VH>(DIFF){
                 b.imgThumb.setImageBitmap(BitmapFactory.decodeFile(path))
             } else {
                 b.imgThumb.setImageDrawable(null)
+            }
+
+            b.root.setOnClickListener {
+                onItemClick(e)
             }
         }
     }

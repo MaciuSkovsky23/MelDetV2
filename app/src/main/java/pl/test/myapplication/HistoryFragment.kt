@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import pl.test.myapplication.databinding.FragmentHistoryBinding
@@ -17,7 +18,11 @@ class HistoryFragment : Fragment() {
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
     private val repo by lazy {ResultRepository(requireContext())}
-    private val adapter = HistoryAdapter()
+    private val adapter by lazy{
+        HistoryAdapter{entity ->
+            val args = Bundle().apply { putLong("resultId", entity.id) }
+            findNavController().navigate(R.id.action_historyFragment_to_resultDetailFragment, args)
+        }}
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +39,9 @@ class HistoryFragment : Fragment() {
         binding.rvHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.rvHistory.adapter = adapter
 
+        binding.btnBackToAnalyze.setOnClickListener {
+            findNavController().popBackStack(R.id.analyzeFragment, false)
+        }
         binding.btnClearHistory.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 repo.clearAll()
@@ -42,6 +50,38 @@ class HistoryFragment : Fragment() {
             }
         }
         refresh()
+
+        val swipe = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+            0,
+            androidx.recyclerview.widget.ItemTouchHelper.LEFT or androidx.recyclerview.widget.ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun onSwiped(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, direction: Int) {
+//                val pos = viewHolder.bindingAdapterPosition
+                val pos = viewHolder.adapterPosition
+                if (pos == androidx.recyclerview.widget.RecyclerView.NO_POSITION) return
+                val item = adapter.currentList.getOrNull(pos)
+
+                if (item == null) {
+                    adapter.notifyItemChanged(pos)
+                    return
+                }
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repo.deleteOne(item)
+                    Toast.makeText(requireContext(), "Usunięto wpis", Toast.LENGTH_SHORT).show()
+                    refresh()
+                }
+            }
+        }
+
+        androidx.recyclerview.widget.ItemTouchHelper(swipe).attachToRecyclerView(binding.rvHistory)
+
     }
 
     override fun onResume() {

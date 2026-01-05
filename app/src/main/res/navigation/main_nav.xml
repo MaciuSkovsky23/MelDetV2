@@ -12,7 +12,11 @@
         tools:layout="@layout/fragment_start" >
         <action
             android:id="@+id/action_startFragment_to_infoFragment"
-            app:destination="@id/infoFragment" />
+            app:destination="@id/infoFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
     </fragment>
 
     <fragment
@@ -22,7 +26,11 @@
         tools:layout="@layout/fragment_info" >
         <action
             android:id="@+id/action_infoFragment_to_analyzeFragment"
-            app:destination="@id/analyzeFragment" />
+            app:destination="@id/analyzeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
     </fragment>
 
     <fragment
@@ -32,12 +40,35 @@
         tools:layout="@layout/fragment_analyze">
         <action
             android:id="@+id/action_analyzeFragment_to_historyFragment"
-            app:destination="@id/historyFragment" />
+            app:destination="@id/historyFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
     </fragment>
 
     <fragment
         android:id="@+id/historyFragment"
         android:name="pl.test.myapplication.HistoryFragment"
         android:label="HistoryFragment"
-        tools:layout="@layout/fragment_history" />
+        tools:layout="@layout/fragment_history" >
+        <action
+            android:id="@+id/action_historyFragment_to_resultDetailFragment"
+            app:destination="@id/resultDetailFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/resultDetailFragment"
+        android:name="pl.test.myapplication.ResultDetailFragment"
+        android:label="ResultDetailFragment"
+        tools:layout="@layout/fragment_result_detail">
+        <argument
+            android:name="resultId"
+            app:argType="long" />
+    </fragment>
+
 </navigation>

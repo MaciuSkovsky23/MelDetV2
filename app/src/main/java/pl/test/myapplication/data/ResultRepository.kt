@@ -45,4 +45,16 @@ class ResultRepository(context: Context) {
         dao.clearAll()
         ImageStore.deleteAll(appContext)
     }
+
+    suspend fun getById(id: Long): ResultEntity? = dao.getByID(id)
+    suspend fun deleteOne(entity: ResultEntity){
+        ImageStore.delete(entity.imagePath)
+        dao.deleteOne(entity)
+    }
+
+    suspend fun deleteById(id: Long){
+        val entity = dao.getByID(id) ?: return
+        deleteOne(entity)
+    }
+
 }

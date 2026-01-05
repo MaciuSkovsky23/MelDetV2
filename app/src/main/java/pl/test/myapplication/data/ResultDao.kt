@@ -13,7 +13,7 @@ interface ResultDao {
     suspend fun insert(result: ResultEntity)
 
     @Delete
-    suspend fun delete(result: List<ResultEntity>)
+    suspend fun deleteOne(result: ResultEntity)
 
     @Query("SELECT * FROM results WHERE id = :id LIMIT 1")
     suspend fun getByID(id: Long): ResultEntity?
