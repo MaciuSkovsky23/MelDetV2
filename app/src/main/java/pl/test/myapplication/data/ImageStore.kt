@@ -10,11 +10,16 @@ import java.io.FileOutputStream
 import kotlin.math.roundToInt
 import androidx.core.graphics.scale
 
-//zdjecia zapisywane jako pliki w pamieci aplikacji, w room trzymana tylko sciezka
+/*
+    magazyn zdjec plikow
+    zdjecia zapisywane jako jpg w filesdir aplikacji
+    w bazie room trzymana tylko sciezka
+*/
+
 object ImageStore {
     private const val DIR_NAME = "results_images"
 
-    //bitmapa zapisywana jako JPG
+    //zapisuje bitmape jako JPG
     fun saveJpeg(context: Context, bitmap: Bitmap, maxSidePx: Int = 1280, quality: Int = 92): String {
         val dir = File(context.filesDir, DIR_NAME).apply { mkdirs() }
 

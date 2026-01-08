@@ -14,6 +14,10 @@ import pl.test.myapplication.databinding.FragmentHistoryBinding
 import pl.test.myapplication.data.ResultRepository
 
 
+/*
+    Ekran historii badan
+    Pokazuje liste zapisanych wynikow, umozliwia czyszczenie historii i usuwanie pojedynczych wpisow
+ */
 class HistoryFragment : Fragment() {
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
@@ -89,6 +93,7 @@ class HistoryFragment : Fragment() {
         refresh()
     }
 
+    //odswieza liste historii z bazy room
     private fun refresh(){
         viewLifecycleOwner.lifecycleScope.launch {
             val items = repo.getAll()

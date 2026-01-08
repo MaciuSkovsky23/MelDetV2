@@ -13,10 +13,11 @@ import kotlinx.coroutines.launch
 import pl.test.myapplication.databinding.FragmentInfoBinding
 import pl.test.myapplication.databinding.FragmentStartBinding
 
-/**
- * A simple [Fragment] subclass.
- * Use the [InfoFragment.newInstance] factory method to
- * create an instance of this fragment.
+/*
+    Ekran informacyjny
+    Krotka informacja o celu oraz informacja o zalecanym kontakcie ze specjalista
+    Klikniecie w dowolne miejsce przechodzi dalej
+    Po 5 sekundach automatyczne przejscie dalej
  */
 class InfoFragment : Fragment() {
     private var _binding: FragmentInfoBinding? = null

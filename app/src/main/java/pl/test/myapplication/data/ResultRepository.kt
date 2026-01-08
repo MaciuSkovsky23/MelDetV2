@@ -4,7 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 
 /*
-    klasa ktora ma spinac zapisywanie metadanych w room i zapisywanie zdjec przez imagestore
+    repozytorium historii badan
+    ma laczyc zapisywanie metadanych w room i zapisywanie zdjec w pamieci przez imagestore
  */
 class ResultRepository(context: Context) {
     //applicationcontext aby nie trzymac referencji do fragment
@@ -12,6 +13,7 @@ class ResultRepository(context: Context) {
     private val dataBase = AppDatabase.get(appContext)
     private val dao = dataBase.resultDao()
 
+    //zapisuje wynik analizy: kopie zdjecia(jpg) i rekord w bazie room
     suspend fun saveResult(bitmap: Bitmap, pMelanoma: Float){
         val p = pMelanoma.coerceIn(0f, 1f)
         val uncertain = p in 0.40f..0.60f
@@ -37,24 +39,27 @@ class ResultRepository(context: Context) {
         )
     }
 
-    //pobiera całą historie
+    //zwraca całą historie badan
     suspend fun getAll(): List<ResultEntity> = dao.getAll()
 
-    //czysci całą historie
+    //czysci całą historie badan
     suspend fun clearAll() {
         dao.clearAll()
         ImageStore.deleteAll(appContext)
     }
 
+    //pobiera pojedynczy wynik po id
     suspend fun getById(id: Long): ResultEntity? = dao.getByID(id)
+
+    //usuwa pojedynczy wpis w historii + usuwa plik zdjecia
     suspend fun deleteOne(entity: ResultEntity){
         ImageStore.delete(entity.imagePath)
         dao.deleteOne(entity)
     }
 
+    //usuwa pojedynczy wpis po id
     suspend fun deleteById(id: Long){
         val entity = dao.getByID(id) ?: return
         deleteOne(entity)
     }
-
 }

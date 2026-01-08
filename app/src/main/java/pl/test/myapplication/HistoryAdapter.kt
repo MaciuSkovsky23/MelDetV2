@@ -15,6 +15,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/*
+    Adapter RecyclerView do listy historii
+    Skleja dane z ResultEntity z widokiem elementu listy (miniatura, opis, kolory)
+ */
 class HistoryAdapter (
     private val onItemClick: (ResultEntity)-> Unit
 ) : ListAdapter<ResultEntity, HistoryAdapter.VH>(DIFF){
@@ -75,8 +79,7 @@ class HistoryAdapter (
             val fileOk = !path.isNullOrBlank() && File(path).exists()
 
             if (fileOk) {
-                // Dekodowanie "na lekko" – zdjęcia zapisujemy już w rozsądnym rozmiarze w ImageStore,
-                // więc decodeFile zwykle wystarcza bez kombinowania.
+                //Dekodowanie na lekko – zdjecia zapisywane już w rozsadnym rozmiarze w ImageStore
                 b.imgThumb.setImageBitmap(BitmapFactory.decodeFile(path))
             } else {
                 b.imgThumb.setImageDrawable(null)

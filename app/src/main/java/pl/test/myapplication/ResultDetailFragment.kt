@@ -18,6 +18,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/*
+    Ekran szczegolow pojedynczego wyniku
+    Pokazuje pełny podglad zdjecia date wynik
+    oraz pozwala usunac wpis
+ */
 class ResultDetailFragment : Fragment() {
 
     private var _binding: FragmentResultDetailBinding? = null

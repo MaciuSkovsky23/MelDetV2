@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 import pl.test.myapplication.databinding.FragmentStartBinding
 
 
-/**
- * A simple [Fragment] subclass.
- * Use the [StartFragment.newInstance] factory method to
- * create an instance of this fragment.
+/*
+    Ekran startowy
+    Klikniecie w dowolne miejsce przechodzi dalej
+    Po 5 sekundach automatyczne przejscie dalej
  */
 class StartFragment : Fragment() {
     private var _binding: FragmentStartBinding? = null
@@ -49,6 +49,7 @@ class StartFragment : Fragment() {
         }
     }
 
+//    przejscie do kolejnego ekranu
     private fun goNext(){
         if(navigated) return
 

@@ -33,6 +33,13 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+
+/*
+    ekran analizy zdjecia
+    obsluguje wybor zdjecia z galerii/kamera
+    uruchamia klasyfikacje
+    pozwala uruchomic historie i zapisac do niej wynik
+*/
 class AnalyzeFragment : Fragment() {
 
     private var _binding: FragmentAnalyzeBinding? = null
@@ -113,6 +120,7 @@ class AnalyzeFragment : Fragment() {
         openHistory = binding.btnHistory
     }
 
+//    przetwarza zdjecie z kamery do formatu wejsciowego modelu
     private fun processImage(image: Bitmap) {
         val dimension = minOf(image.width, image.height)
         val thumbnail = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
@@ -125,6 +133,7 @@ class AnalyzeFragment : Fragment() {
         classifyImage(scaledImage)
     }
 
+//    przetwarza zdjecie z galerii do formatu wejsciowego modelu
     private fun processGalleryImage(uri: Uri) {
         try {
             val image = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, uri)
@@ -180,6 +189,7 @@ class AnalyzeFragment : Fragment() {
         }
     }
 
+//    przygotowuje obraz i uruchamia inferencje TFLite
     private fun classifyImage(image: Bitmap) {
 
         guideText.visibility = View.INVISIBLE
@@ -255,6 +265,7 @@ class AnalyzeFragment : Fragment() {
         }
     }
 
+//    aktualizuje UI na podstawie wyniku
     @SuppressLint("SetTextI18n")
     private fun displayResults(predictedClass: Int, probabilities: FloatArray) {
         val pMelanoma = probabilities[1]

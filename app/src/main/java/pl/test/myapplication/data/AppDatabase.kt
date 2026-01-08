@@ -5,6 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
+/*
+    główna baza room aplikacji
+    singleton - jedna instancja na caly proces aplikacji
+ */
 @Database(entities = [ResultEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase(){
 

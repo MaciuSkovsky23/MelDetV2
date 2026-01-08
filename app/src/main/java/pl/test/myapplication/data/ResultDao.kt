@@ -6,6 +6,12 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 
+
+/*
+    data access object do bazy room
+    operacje na tabeli wynikow
+    zapytania dodaj, usun, odswiez, pobierz, wyczysc
+ */
 @Dao
 interface ResultDao {
 
